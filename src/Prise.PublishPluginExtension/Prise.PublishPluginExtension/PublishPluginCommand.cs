@@ -67,7 +67,7 @@ namespace Prise.PublishPluginExtension
 
             var projectPath = ProjectHelper.GetCurrentProjectPath(dte);
             var projectName = ProjectHelper.GetCurrentProjectName(dte);
-            var publishPath = Path.GetFullPath(Path.Combine(projectPath, options.PublishDir));
+            var publishPath = Path.IsPathRooted(options.PublishDir) ? options.PublishDir : Path.GetFullPath(Path.Combine(projectPath, options.PublishDir));
             var configuration = !String.IsNullOrEmpty(options.Configuration) ? options.Configuration : "Debug";
 
             if (options.IncludeProjectNameInPublishDir)
@@ -84,7 +84,7 @@ namespace Prise.PublishPluginExtension
             new ProcessHelper(
                 "cmd.exe",
                 workingDir,
-                $@"/k ""dotnet publish --configuration {configuration} --output {outputPath}"" && exit",
+                $@"/c ""dotnet publish --configuration {configuration} --output {outputPath}""",
                 (messages, errors) =>
                 {
                     var builder = new StringBuilder();
@@ -100,22 +100,24 @@ namespace Prise.PublishPluginExtension
                     }
                     WriteToOutput(builder.ToString());
                 }
-            );
+            ).Run();
         }
 
         private static void WriteToOutput(string text)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            // Get the output window
-            var outputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                // Get the output window
+                var outputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
 
-            // Ensure that the desired pane is visible
-            var paneGuid = Microsoft.VisualStudio.VSConstants.OutputWindowPaneGuid.GeneralPane_guid;
-            IVsOutputWindowPane pane;
-            outputWindow.CreatePane(paneGuid, "General", 1, 0);
-            outputWindow.GetPane(paneGuid, out pane);
-            pane.Activate();
-            pane.OutputString(text);
+                // Ensure that the desired pane is visible
+                var paneGuid = Microsoft.VisualStudio.VSConstants.OutputWindowPaneGuid.GeneralPane_guid;
+                IVsOutputWindowPane pane;
+                outputWindow.CreatePane(paneGuid, "General", 1, 0);
+                outputWindow.GetPane(paneGuid, out pane);
+                pane.Activate();
+                pane.OutputString(text);
+            });
         }
     }
 }

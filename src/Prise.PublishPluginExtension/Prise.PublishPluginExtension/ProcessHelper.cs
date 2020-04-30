@@ -28,6 +28,7 @@ namespace Prise.PublishPluginExtension
         public void Run()
         {
             m_process = new Process();
+            m_process.EnableRaisingEvents = true;
             m_process.StartInfo.FileName = this.process;
             m_process.StartInfo.WorkingDirectory = this.workingDir;
             m_process.StartInfo.Arguments = this.arguments;
@@ -42,10 +43,10 @@ namespace Prise.PublishPluginExtension
             m_process.ErrorDataReceived += this.ErrorDataHandler;
             m_process.OutputDataReceived += this.OutputDataHandler;
 
+            m_process.Start();
+
             m_process.BeginErrorReadLine();
             m_process.BeginOutputReadLine();
-
-            m_process.Start();
 
             m_processExited.WaitOne();
         }
@@ -54,7 +55,7 @@ namespace Prise.PublishPluginExtension
         {
             string message = args.Data;
 
-            if (message.StartsWith("Error"))
+            if (!String.IsNullOrEmpty(message) && message.StartsWith("Error"))
             {
                 // The vsinstr.exe process reported an error
                 m_errorMessages.Add(message);
