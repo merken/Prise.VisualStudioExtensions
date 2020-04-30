@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Constants.cs" />
     <Compile Include="CreatePrisePluginFileCommand.cs" />
+    <Compile Include="ProcessHelper.cs" />
     <Compile Include="ProjectHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PublishPluginCommand.cs" />

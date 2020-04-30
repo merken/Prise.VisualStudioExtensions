@@ -2,6 +2,8 @@
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -74,41 +76,31 @@ namespace Prise.PublishPluginExtension
             if (!Directory.Exists(publishPath))
                 throw new NotSupportedException($"Path '{publishPath}' does not exist, please create or update path.");
 
-            var process = new System.Diagnostics.Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    WorkingDirectory = projectPath,
-                    Arguments = $@"/k ""dotnet publish --configuration {configuration} --output {publishPath}"" && exit",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                }
-            };
-
-            var publishOutput = StartPublishProcessAndGetOutput(projectPath, configuration, publishPath);
-            WriteToOutput(publishOutput);
+            StartPublishProcessAndWriteOutput(projectPath, configuration, publishPath);
         }
 
-        private static string StartPublishProcessAndGetOutput(string workingDir, string configuration, string outputPath)
+        private static void StartPublishProcessAndWriteOutput(string workingDir, string configuration, string outputPath)
         {
-            var process = new System.Diagnostics.Process
-            {
-                StartInfo = new ProcessStartInfo
+            new ProcessHelper(
+                "cmd.exe",
+                workingDir,
+                $@"/k ""dotnet publish --configuration {configuration} --output {outputPath}"" && exit",
+                (messages, errors) =>
                 {
-                    FileName = "cmd.exe",
-                    WorkingDirectory = workingDir,
-                    Arguments = $@"/k ""dotnet publish --configuration {configuration} --output {outputPath}"" && exit",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
+                    var builder = new StringBuilder();
+                    if (messages.Any())
+                    {
+                        foreach (var msg in messages)
+                            builder.AppendLine(msg);
+                    }
+                    if (messages.Any())
+                    {
+                        foreach (var error in errors)
+                            builder.AppendLine(error);
+                    }
+                    WriteToOutput(builder.ToString());
                 }
-            };
-            process.Start();
-            process.WaitForExit();
-            return process.StandardOutput.ReadToEnd();
+            );
         }
 
         private static void WriteToOutput(string text)
