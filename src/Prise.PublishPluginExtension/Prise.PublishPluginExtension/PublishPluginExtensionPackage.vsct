@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Extern href="stdidcmd.h" />
+  <Extern href="vsshlids.h" />
+  <Include href="KnownImageIds.vsct" />
+
+  <Commands package="PublishPluginPackage">
+
+    <Menus>
+      <Menu guid="PublishPluginCommandSet" id="PriseMenu" priority="0x0300" type="Menu">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_BUILD" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Prise</ButtonText>
+          <CommandName>Prise</CommandName>
+        </Strings>
+      </Menu>
+    </Menus>
+
+    <Groups>
+
+      <Group guid="PublishPluginCommandSet" id="PriseMenuGroup" priority="0x0600">
+        <Parent guid="PublishPluginCommandSet" id="PriseMenu" />
+      </Group>
+      
+    </Groups>
+
+    <Buttons>
+
+      <Button guid="PublishPluginCommandSet" id="CreatePrisePluginFileCommandId" priority="0x0100" type="Button">
+        <Parent guid="PublishPluginCommandSet" id="PriseMenuGroup" />
+        <Icon guid="ImageCatalogGuid" id="NewLinkFile" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Create prise.plugin.json file</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="PublishPluginCommandSet" id="PublishPluginCommandId" priority="0x0200" type="Button">
+        <Parent guid="PublishPluginCommandSet" id="PriseMenuGroup" />
+        <Icon guid="ImageCatalogGuid" id="Compile" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Publish Prise Plugin</ButtonText>
+        </Strings>
+      </Button>
+
+    </Buttons>
+
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="PublishPluginPackage" value="{7cdfbba4-9f97-42ee-b9f0-34e2fd1ae453}" />
+
+    <GuidSymbol name="PublishPluginCommandSet" value="{59a599e6-82ca-4ccd-beaa-1730d69adc3f}">
+      <IDSymbol name="PriseMenu" value="0x1010" />
+      <IDSymbol name="PriseMenuGroup" value="0x1020" />
+
+      <IDSymbol name="CreatePrisePluginFileCommandId" value="0x0100" />
+      <IDSymbol name="PublishPluginCommandId" value="0x0101" />
+    </GuidSymbol>
+  </Symbols>
+
+</CommandTable>
