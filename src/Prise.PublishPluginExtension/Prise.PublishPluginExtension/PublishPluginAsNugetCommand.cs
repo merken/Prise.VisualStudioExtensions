@@ -1,8 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.IO;
-using System.Linq;
-using System.Text;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 

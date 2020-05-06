@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
-using System.Threading;
 
 namespace Prise.PublishPluginExtension
 {
@@ -14,9 +12,8 @@ namespace Prise.PublishPluginExtension
 
     internal class ProcessHelper
     {
-        private List<string> m_regularMessages = new List<string>();
-        private List<string> m_errorMessages = new List<string>();
-        private Process m_process;
+        private List<string> accumulatedMessages = new List<string>();
+        private List<string> accumulatedErrors = new List<string>();
         private readonly string process;
         private readonly string workingDir;
         private readonly string arguments;
@@ -30,50 +27,45 @@ namespace Prise.PublishPluginExtension
 
         public ProcessOutput Run()
         {
-            m_process = new Process();
-            m_process.EnableRaisingEvents = true;
-            m_process.StartInfo.FileName = this.process;
-            m_process.StartInfo.WorkingDirectory = this.workingDir;
-            m_process.StartInfo.Arguments = this.arguments;
-            m_process.StartInfo.UseShellExecute = false;
-            m_process.StartInfo.CreateNoWindow = true;
-            
-            m_process.StartInfo.RedirectStandardError = true;
-            m_process.StartInfo.RedirectStandardOutput = true;
+            var proc = new Process();
+            proc.EnableRaisingEvents = true;
+            proc.StartInfo.FileName = this.process;
+            proc.StartInfo.WorkingDirectory = this.workingDir;
+            proc.StartInfo.Arguments = this.arguments;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.CreateNoWindow = true;
 
-            m_process.ErrorDataReceived += this.ErrorDataHandler;
-            m_process.OutputDataReceived += this.OutputDataHandler;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.RedirectStandardOutput = true;
 
-            m_process.Start();
+            proc.ErrorDataReceived += this.ErrorDataHandler;
+            proc.OutputDataReceived += this.OutputDataHandler;
 
-            m_process.BeginErrorReadLine();
-            m_process.BeginOutputReadLine();
+            proc.Start();
 
-            m_process.WaitForExit();
+            proc.BeginErrorReadLine();
+            proc.BeginOutputReadLine();
+
+            proc.WaitForExit();
 
             return new ProcessOutput
             {
-                Messages = this.m_regularMessages,
-                Errors = this.m_errorMessages,
+                Messages = this.accumulatedMessages,
+                Errors = this.accumulatedErrors,
             };
         }
 
         private void ErrorDataHandler(object sender, DataReceivedEventArgs args)
         {
-            string message = args.Data;
+            var message = args.Data;
 
             if (!String.IsNullOrEmpty(message) && message.StartsWith("Error"))
             {
                 // The vsinstr.exe process reported an error
-                m_errorMessages.Add(message);
+                accumulatedErrors.Add(message);
             }
         }
 
-        private void OutputDataHandler(object sender, DataReceivedEventArgs args)
-        {
-            string message = args.Data;
-
-            m_regularMessages.Add(message);
-        }
+        private void OutputDataHandler(object sender, DataReceivedEventArgs args) => accumulatedMessages.Add(args.Data);
     }
 }
