@@ -30,11 +30,21 @@
 
       <Button guid="PublishPluginCommandSet" id="CreatePrisePluginFileCommandId" priority="0x0100" type="Button">
         <Parent guid="PublishPluginCommandSet" id="PriseMenuGroup" />
-        <Icon guid="ImageCatalogGuid" id="NewLinkFile" />
+        <Icon guid="ImageCatalogGuid" id="AddItem" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Create prise.plugin.json file</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="PublishPluginCommandSet" id="CreateNuspecCommandId" priority="0x0200" type="Button">
+        <Parent guid="PublishPluginCommandSet" id="PriseMenuGroup" />
+        <Icon guid="ImageCatalogGuid" id="AddItem" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Create nuspec file</ButtonText>
         </Strings>
       </Button>
 
@@ -45,6 +55,16 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Publish Prise Plugin</ButtonText>
+        </Strings>
+      </Button>
+      
+      <Button guid="PublishPluginCommandSet" id="PublishPluginAsNugetCommandId" priority="0x0300" type="Button">
+        <Parent guid="PublishPluginCommandSet" id="PriseMenuGroup" />
+        <Icon guid="ImageCatalogGuid" id="Package" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Publish Prise Plugin as NuGet package</ButtonText>
         </Strings>
       </Button>
 
@@ -61,6 +81,8 @@
 
       <IDSymbol name="CreatePrisePluginFileCommandId" value="0x0100" />
       <IDSymbol name="PublishPluginCommandId" value="0x0101" />
+      <IDSymbol name="CreateNuspecCommandId" value="0x0102" />
+      <IDSymbol name="PublishPluginAsNugetCommandId" value="0x0103" />
     </GuidSymbol>
   </Symbols>
 

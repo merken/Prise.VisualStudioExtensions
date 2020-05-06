@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Prise.PublishPluginExtension.e0a2227c-1189-430d-829e-e6a98d1988df" Version="1.0" Language="en-US" Publisher="Maarten MERKEN" />
+        <Identity Id="Prise.PublishPluginExtension.e0a2227c-1189-430d-829e-e6a98d1988df" Version="1.1" Language="en-US" Publisher="Maarten Merken" />
         <DisplayName>Prise Publish-plugin extension</DisplayName>
         <Description xml:space="preserve">Visual Studio Extension for the Prise Plugin framework!</Description>
     </Metadata>

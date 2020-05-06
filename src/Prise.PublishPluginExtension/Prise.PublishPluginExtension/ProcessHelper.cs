@@ -6,26 +6,29 @@ using System.Threading;
 
 namespace Prise.PublishPluginExtension
 {
-    class ProcessHelper
+    internal class ProcessOutput
     {
-        private ManualResetEvent m_processExited = new ManualResetEvent(false);
+        public IEnumerable<string> Messages { get; set; }
+        public IEnumerable<string> Errors { get; set; }
+    }
+
+    internal class ProcessHelper
+    {
         private List<string> m_regularMessages = new List<string>();
         private List<string> m_errorMessages = new List<string>();
         private Process m_process;
         private readonly string process;
         private readonly string workingDir;
         private readonly string arguments;
-        private readonly Action<List<string>, List<string>> exit;
 
-        public ProcessHelper(string process, string workingDir, string arguments, Action<List<string>, List<string>> exit)
+        public ProcessHelper(string process, string workingDir, string arguments)
         {
             this.process = process;
             this.workingDir = workingDir;
             this.arguments = arguments;
-            this.exit = exit;
         }
 
-        public void Run()
+        public ProcessOutput Run()
         {
             m_process = new Process();
             m_process.EnableRaisingEvents = true;
@@ -34,9 +37,7 @@ namespace Prise.PublishPluginExtension
             m_process.StartInfo.Arguments = this.arguments;
             m_process.StartInfo.UseShellExecute = false;
             m_process.StartInfo.CreateNoWindow = true;
-
-            m_process.Exited += this.ProcessExited;
-
+            
             m_process.StartInfo.RedirectStandardError = true;
             m_process.StartInfo.RedirectStandardOutput = true;
 
@@ -48,7 +49,13 @@ namespace Prise.PublishPluginExtension
             m_process.BeginErrorReadLine();
             m_process.BeginOutputReadLine();
 
-            m_processExited.WaitOne();
+            m_process.WaitForExit();
+
+            return new ProcessOutput
+            {
+                Messages = this.m_regularMessages,
+                Errors = this.m_errorMessages,
+            };
         }
 
         private void ErrorDataHandler(object sender, DataReceivedEventArgs args)
@@ -67,14 +74,6 @@ namespace Prise.PublishPluginExtension
             string message = args.Data;
 
             m_regularMessages.Add(message);
-        }
-
-        private void ProcessExited(object sender, EventArgs args)
-        {
-            // This is where you can add some code to be
-            // executed before this program exits.
-            m_processExited.Set();
-            this.exit(m_regularMessages, m_errorMessages);
         }
     }
 }

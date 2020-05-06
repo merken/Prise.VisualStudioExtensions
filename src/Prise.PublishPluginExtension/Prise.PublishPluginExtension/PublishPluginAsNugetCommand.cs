@@ -1,26 +1,20 @@
 ﻿using System;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using EnvDTE;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Prise.PublishPluginExtension
 {
-    /// <summary>
-    /// Command handler
-    /// </summary>
-    internal sealed class PublishPluginCommand
+    internal sealed class PublishPluginAsNugetCommand
     {
-        public const int CommandId = 0x0101;
+        public const int CommandId = 0x0103;
         private readonly Package _package;
         private readonly DTE _dte;
 
-        private PublishPluginCommand(Package package)
+        private PublishPluginAsNugetCommand(Package package)
         {
             _package = package ?? throw new ArgumentNullException("package");
             _dte = ServiceProvider.GetService(typeof(DTE)) as DTE;
@@ -35,9 +29,9 @@ namespace Prise.PublishPluginExtension
         }
 
         private void MenuItem_BeforeQueryStatus(object sender, EventArgs e) =>
-            ((OleMenuCommand)sender).Enabled = ProjectHelper.DoesPrisePluginFileExist(_dte);
+            ((OleMenuCommand)sender).Enabled = ProjectHelper.DoesAtLeastOneNuspecFileExist(_dte);
 
-        public static PublishPluginCommand Instance
+        public static PublishPluginAsNugetCommand Instance
         {
             get;
             private set;
@@ -53,7 +47,7 @@ namespace Prise.PublishPluginExtension
 
         public static void Initialize(Package package)
         {
-            Instance = new PublishPluginCommand(package);
+            Instance = new PublishPluginAsNugetCommand(package);
         }
 
         private void MenuItemCallback(object sender, EventArgs e) =>
@@ -68,17 +62,28 @@ namespace Prise.PublishPluginExtension
             var projectPath = ProjectHelper.GetCurrentProjectPath(dte);
             var projectName = ProjectHelper.GetCurrentProjectName(dte);
             var projectFileName = ProjectHelper.GetCurrentProjectFileName(dte);
+            var targetFramework = ProjectHelper.GetTargetFrameworkFromProject(dte);
+            var nuspecFile = $"{projectFileName.Split(new[] { ".csproj" }, StringSplitOptions.RemoveEmptyEntries)[0]}.nuspec";
             var publishPath = Path.IsPathRooted(options.PublishDir) ? options.PublishDir : Path.GetFullPath(Path.Combine(projectPath, options.PublishDir));
             var configuration = !String.IsNullOrEmpty(options.Configuration) ? options.Configuration : "Debug";
 
             if (options.IncludeProjectNameInPublishDir)
                 publishPath = Path.Combine(publishPath, projectName);
 
+            if (!String.IsNullOrEmpty(options.NuspecFile))
+                nuspecFile = Path.IsPathRooted(options.NuspecFile) ? options.NuspecFile : Path.GetFullPath(Path.Combine(projectPath, options.NuspecFile));
+
             if (!Directory.Exists(publishPath))
                 throw new NotSupportedException($"Path '{publishPath}' does not exist, please create or update path.");
 
-            var publishOutput = DotnetCliHelper.Publish(projectPath, configuration, projectFileName, publishPath);
+            var publishOutput = DotnetCliHelper.Publish(projectPath, configuration, projectFileName);
             OutputHelper.WriteToOutput(publishOutput);
+
+            var timestampFixOutput = PowershellHelper.FixUpdateLastWriteTime(projectPath, configuration, targetFramework);
+            OutputHelper.WriteToOutput(timestampFixOutput);
+
+            var packOutput = DotnetCliHelper.Pack(projectPath, configuration, projectFileName, publishPath, nuspecFile);
+            OutputHelper.WriteToOutput(packOutput);
         }
     }
 }

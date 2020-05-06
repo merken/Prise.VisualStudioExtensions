@@ -3,8 +3,10 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using EnvDTE;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Task = System.Threading.Tasks.Task;
 
 namespace Prise.PublishPluginExtension
@@ -55,10 +57,13 @@ namespace Prise.PublishPluginExtension
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            //KnownImageIds.Package
             mcs.AddCommand(menuItem);
 
             Prise.PublishPluginExtension.CreatePrisePluginFileCommand.Initialize(this);
+            Prise.PublishPluginExtension.CreateNuspecFileCommand.Initialize(this);
             Prise.PublishPluginExtension.PublishPluginCommand.Initialize(this);
+            Prise.PublishPluginExtension.PublishPluginAsNugetCommand.Initialize(this);
         }
         #endregion
 
