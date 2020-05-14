@@ -10,7 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onLanguage:csharp"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -34,11 +34,26 @@
 		],
 		"menus": {
 			"explorer/context": [
-			  {
-				"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
-				"command": "prise-publishpluginextension.prisepluginfile",
-				"group": "navigation"
-			  }
+				{
+					"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
+					"command": "prise-publishpluginextension.prisepluginfile",
+					"group": "navigation"
+				},
+				{
+					"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
+					"command": "prise-publishpluginextension.prisenuspecfile",
+					"group": "navigation"
+				},
+				{
+					"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
+					"command": "prise-publishpluginextension.publishpriseplugin",
+					"group": "navigation"
+				},
+				{
+					"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
+					"command": "prise-publishpluginextension.publishprisenugetplugin",
+					"group": "navigation"
+				}
 			]
 		}
 	},
