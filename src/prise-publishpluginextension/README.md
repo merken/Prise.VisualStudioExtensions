@@ -37,6 +37,8 @@ Users appreciate release notes as you update your extension.
 
 ### 1.0.0
 
+test
+
 Initial release of ...
 
 ### 1.0.1

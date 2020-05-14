@@ -2,6 +2,7 @@
 	"name": "prise-publishpluginextension",
 	"displayName": "Prise Publish Plugin Extension",
 	"description": "Publish Prise plugins with VS Code!",
+	"publisher": "MRKN",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.45.0"
