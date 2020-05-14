@@ -37,22 +37,22 @@
 				{
 					"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
 					"command": "prise-publishpluginextension.prisepluginfile",
-					"group": "navigation"
+					"group": "Prise"
 				},
 				{
 					"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
 					"command": "prise-publishpluginextension.prisenuspecfile",
-					"group": "navigation"
+					"group": "Prise"
 				},
 				{
 					"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
 					"command": "prise-publishpluginextension.publishpriseplugin",
-					"group": "navigation"
+					"group": "Prise"
 				},
 				{
 					"when": "!explorerResourceIsFolder && resourceExtname == .csproj",
 					"command": "prise-publishpluginextension.publishprisenugetplugin",
-					"group": "navigation"
+					"group": "Prise"
 				}
 			]
 		}
