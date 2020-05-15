@@ -1,22 +1,17 @@
-"use strict";
-import * as fs from "fs";
-import { basename, dirname, resolve, join, isAbsolute, relative } from "path";
-import * as vscode from "vscode";
+'use strict';
+import * as fs from 'fs';
+import { dirname, resolve, join, isAbsolute } from 'path';
 import * as cp from 'child_process';
+import { ProjectHelper } from './projecthelper';
+import { OutputAbstraction } from './abstractions/output.abstraction';
 
-export class ProcessHelper implements vscode.Disposable {
-    private outputChannel: vscode.OutputChannel;
-    private absolutePathToCsProj: string;
+export class ProcessHelper {
+    constructor(private outputAbstraction: OutputAbstraction) { }
 
-    constructor(absolutePathToCsProj: string) {
-        this.outputChannel = vscode.window.createOutputChannel("Prise");
-        this.absolutePathToCsProj = absolutePathToCsProj;
-    }
-
-    private getPrisePluginConfig(): any {
-        const priseConfigFilePath = join(dirname(this.absolutePathToCsProj), "prise.plugin.json");
+    private getPrisePluginConfig(absolutePathToCsProj: string): any {
+        const priseConfigFilePath = join(dirname(absolutePathToCsProj), 'prise.plugin.json');
         if (!fs.existsSync(priseConfigFilePath)) {
-            vscode.window.showErrorMessage(`prise.plugin.json does not exists at ${priseConfigFilePath}`);
+            this.outputAbstraction.error(`prise.plugin.json does not exists at ${priseConfigFilePath}`);
             return;
         }
 
@@ -24,78 +19,58 @@ export class ProcessHelper implements vscode.Disposable {
         return JSON.parse(priseConfigContents);
     }
 
-    private getProjectName(): string {
-        return basename(this.absolutePathToCsProj, '.csproj');
-    }
+    public async publishPlugin(absolutePathToCsProj: string) {
+        const config = this.getPrisePluginConfig(absolutePathToCsProj);
+        if (!config) { return; }
 
-    private getTargetFramework(): string {
-        const projectFileContents = fs.readFileSync(this.absolutePathToCsProj, 'utf8');
-        var targetFrameworkRegex = new RegExp("<TargetFramework>(.*?)</TargetFramework>", "gmi");
-        var targetFrameworkRegexResults = targetFrameworkRegex.exec(projectFileContents);
-        if (!targetFrameworkRegexResults)
-            throw new Error(`${projectFileContents} could not be parsed`);
-
-        return targetFrameworkRegexResults[1];
-    }
-
-    public async publishPlugin() {
-        const config = this.getPrisePluginConfig();
-        if (!config)
-            return;
-
-        const workingDir = dirname(this.absolutePathToCsProj);
-        const projectName = this.getProjectName();
-        const targetFramework = this.getTargetFramework();
-        const configuration = config.configuration ?? "Debug";
+        const workingDir = dirname(absolutePathToCsProj);
+        const projectName = ProjectHelper.getProjectName(absolutePathToCsProj);
+        const targetFramework = ProjectHelper.getTargetFramework(absolutePathToCsProj);
+        const configuration = config.configuration ?? 'Debug';
         let publishPath = config.publishDir;
 
-        if (!isAbsolute(publishPath))
-            publishPath = resolve(workingDir, publishPath);
+        if (!isAbsolute(publishPath)) { publishPath = resolve(workingDir, publishPath); }
 
-        if (config.includeProjectNameInPublishDir)
-            publishPath = join(publishPath, projectName);
+        if (config.includeProjectNameInPublishDir) { publishPath = join(publishPath, projectName); }
 
         if (!fs.existsSync(publishPath)) {
-            vscode.window.showErrorMessage(`Publish dir does not exists: ${publishPath}`);
+            this.outputAbstraction.error(`Publish dir does not exists: ${publishPath}`);
             return;
         }
 
-        await this.dotnet("publish", projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`, publishPath);
+        await this.dotnet('publish', projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`, publishPath);
     }
 
-    public async packPlugin() {
-        const config = this.getPrisePluginConfig();
-        if (!config)
-            return;
+    public async packPlugin(absolutePathToCsProj: string) {
+        const config = this.getPrisePluginConfig(absolutePathToCsProj);
+        if (!config) { return; }
 
-        const workingDir = dirname(this.absolutePathToCsProj);
-        const projectName = this.getProjectName();
-        const targetFramework = this.getTargetFramework();
-        const configuration = config.configuration ?? "Debug";
-        let nuspecFile = config.nuspecFile ?? `${projectName.split(".csproj")[0]}.nuspec`;
+        const workingDir = dirname(absolutePathToCsProj);
+        const projectName = ProjectHelper.getProjectName(absolutePathToCsProj);
+        const targetFramework = ProjectHelper.getTargetFramework(absolutePathToCsProj);
+        const configuration = config.configuration ?? 'Debug';
+        let nuspecFile = config.nuspecFile ?? `${projectName.split('.csproj')[0]}.nuspec`;
         let publishPath = config.publishDir;
 
-        if (!isAbsolute(publishPath))
-            publishPath = resolve(workingDir, publishPath);
+        if (!isAbsolute(publishPath)) { publishPath = resolve(workingDir, publishPath); }
 
-        if (!isAbsolute(nuspecFile))
-            nuspecFile = resolve(workingDir, nuspecFile);
+        if (!isAbsolute(nuspecFile)) { nuspecFile = resolve(workingDir, nuspecFile); }
 
         if (!fs.existsSync(publishPath)) {
-            vscode.window.showErrorMessage(`Publish dir does not exists: ${publishPath}`);
+            this.outputAbstraction.error(`Publish dir does not exists: ${publishPath}`);
             return;
         }
 
         if (!fs.existsSync(nuspecFile)) {
-            vscode.window.showErrorMessage(`NuSpec file does not exists: ${nuspecFile}`);
+            this.outputAbstraction.error(`NuSpec file does not exists: ${nuspecFile}`);
             return;
         }
 
-        const outputDir = await this.dotnet("publish", projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`);
+        const outputDir = await this.dotnet('publish', projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`);
 
         this.changeLastWriteTime(resolve(workingDir, outputDir));
 
-        await this.dotnet("pack", projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`, publishPath);
+        await this.dotnet('pack', projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`, publishPath);
     }
 
     private changeLastWriteTime(outputDir: string) {
@@ -107,7 +82,7 @@ export class ProcessHelper implements vscode.Disposable {
             if (stat.isDirectory()) {
                 this.changeLastWriteTime(filename); //recurse
             }
-            else if (filename.indexOf(".dll") >= 0) {
+            else if (filename.indexOf('.dll') >= 0) {
                 var stats = fs.statSync(filename);
                 var mtime = stats.mtime;
                 if (mtime < searchTime) {
@@ -128,24 +103,20 @@ export class ProcessHelper implements vscode.Disposable {
         return new Promise(resolve => {
             let options = { cwd: workingDir };
             let args = [command, '--configuration', configuration, projectFile];
-            if (outputPath)
-                args = [...args, '--output', outputPath];
+            if (outputPath) { args = [...args, '--output', outputPath]; }
 
             let childProcess = cp.spawn(`dotnet`, args, options);
 
             if (childProcess.pid) {
                 childProcess.stdout.on('data', (data: Buffer) => {
-                    this.outputChannel.append(data.toString());
+                    this.outputAbstraction.writeOutput(data.toString());
                 });
                 childProcess.stdout.on('end', () => {
-                    const output = outputPath ?? join("bin", configuration, targetFramework, "publish");
-                    this.outputChannel.append(`Published ${projectName} to ${output}`);
+                    const output = outputPath ?? join('bin', configuration, targetFramework, 'publish');
+                    this.outputAbstraction.writeOutput(`Published ${projectName} to ${output}`);
                     resolve(output);
                 });
             }
         });
-    }
-
-    public dispose() {
     }
 }

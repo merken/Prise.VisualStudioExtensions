@@ -1,68 +1,30 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import path = require('path');
+import { PrisePluginCommand } from './commands/prise-plugin.command';
+import { OutputAbstraction } from './abstractions/output.abstraction';
+import { NuspecCommand } from './commands/nuspec.command';
+import { PublishCommand } from './commands/publish.command';
+import { PackCommand } from './commands/pack.command';
 import { FileHelper } from './filehelper';
 import { ProcessHelper } from './processhelper';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "prise-publishpluginextension" is now active!');
+	//Singleton output window instance
+	const outputAbstraction = new OutputAbstraction( vscode.window.createOutputChannel('Prise'));
 
 	let prisepluginfile = vscode.commands.registerCommand('prise-publishpluginextension.prisepluginfile', (args: any) => {
-		if (!args["scheme"] ||
-			args["scheme"] !== "file" ||
-			!args["fsPath"] ||
-			!args["fsPath"].endsWith(".csproj")
-		)
-			return;
-
-		const csprojFile = args["fsPath"];
-		const fileHelper = new FileHelper(csprojFile);
-		fileHelper.createPriseJsonFile();
+		new PrisePluginCommand(new FileHelper(outputAbstraction)).execute(args);
 	});
 
 	let prisenuspecfile = vscode.commands.registerCommand('prise-publishpluginextension.prisenuspecfile', (args: any) => {
-		if (!args["scheme"] ||
-			args["scheme"] !== "file" ||
-			!args["fsPath"] ||
-			!args["fsPath"].endsWith(".csproj")
-		)
-			return;
-
-		const csprojFile = args["fsPath"];
-		const fileHelper = new FileHelper(csprojFile);
-		fileHelper.createPriseNugetFile();
+		new NuspecCommand(new FileHelper(outputAbstraction)).execute(args);
 	});
 
 	let publishpriseplugin = vscode.commands.registerCommand('prise-publishpluginextension.publishpriseplugin', (args: any) => {
-		if (!args["scheme"] ||
-			args["scheme"] !== "file" ||
-			!args["fsPath"] ||
-			!args["fsPath"].endsWith(".csproj")
-		)
-			return;
-
-		const csprojFile = args["fsPath"];
-		const processhelper = new ProcessHelper(csprojFile);
-		processhelper.publishPlugin();
+		new PublishCommand(new ProcessHelper(outputAbstraction)).execute(args);
 	});
 
 	let publishprisenugetplugin = vscode.commands.registerCommand('prise-publishpluginextension.publishprisenugetplugin', (args: any) => {
-		if (!args["scheme"] ||
-			args["scheme"] !== "file" ||
-			!args["fsPath"] ||
-			!args["fsPath"].endsWith(".csproj")
-		)
-			return;
-
-		const csprojFile = args["fsPath"];
-		const processhelper = new ProcessHelper(csprojFile);
-		processhelper.packPlugin();
+		new PackCommand(new ProcessHelper(outputAbstraction)).execute(args);
 	});
 
 	context.subscriptions.push(prisepluginfile);
@@ -71,5 +33,4 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(publishprisenugetplugin);
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() { }

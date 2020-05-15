@@ -1,20 +1,21 @@
-"use strict";
-import * as fs from "fs";
-import { basename, dirname, extname, join } from "path";
-import * as vscode from "vscode";
+'use strict';
+import * as fs from 'fs';
+import { dirname, join } from 'path';
+import { ProjectHelper } from './projecthelper';
+import { OutputAbstraction } from './abstractions/output.abstraction';
 
-export class FileHelper implements vscode.Disposable {
-    private absolutePathToCsProj: string;
+export class FileHelper {
+    constructor(private outputAbstraction: OutputAbstraction) { }
 
     private priseJsonFileTemplate: any = {
-        publishDir: "<path to host application .\\bin\\Debug\\netcoreappx.x\\Plugins>",
-        configuration: "Debug",
+        publishDir: '<path to host application .\\bin\\Debug\\netcoreappx.x\\Plugins>',
+        configuration: 'Debug',
         nuspecFile: null,
         includeProjectNameInPublishDir: false
     };
 
     private getPriseNuspecFileTemplate(projectName: string, targetFramework: string): string {
-        return `<?xml version="1.0"?>
+        return `<?xml version='1.0'?>
 <package>
     <metadata>
         <id>${projectName}</id>
@@ -27,72 +28,51 @@ export class FileHelper implements vscode.Disposable {
         <tags></tags>
     </metadata>
     <files>
-        <file src="${join("bin", "Debug", targetFramework, "publish", "*.*")}" target="${join("lib", targetFramework)}" />
+        <file src='${join('bin', 'Debug', targetFramework, 'publish', '*.*')}' target='${join('lib', targetFramework)}' />
     </files>
 </package>`;
     }
 
-    constructor(absolutePathToCsProj: string) {
-        this.absolutePathToCsProj = absolutePathToCsProj;
-    }
-
-    private getTargetFramework(): string {
-        const projectFileContents = fs.readFileSync(this.absolutePathToCsProj, 'utf8');
-        var targetFrameworkRegex = new RegExp("<TargetFramework>(.*?)</TargetFramework>", "gmi");
-        var targetFrameworkRegexResults = targetFrameworkRegex.exec(projectFileContents);
-        if (!targetFrameworkRegexResults)
-            throw new Error(`${projectFileContents} could not be parsed`);
-
-        return targetFrameworkRegexResults[1];
-    }
-
-    private getProjectName(): string {
-        return basename(this.absolutePathToCsProj, '.csproj');
-    }
-
-    public createPriseJsonFile(): void {
-        const pathToCsprojFile = dirname(this.absolutePathToCsProj);
-        const pathToJsonFile = join(pathToCsprojFile, "prise.plugin.json");
-        if(fs.existsSync(pathToJsonFile)){
-            vscode.window.showInformationMessage(`prise.plugin.json already exists at ${pathToJsonFile}`);
+    public createPriseJsonFile(absolutePathToCsProj: string): void {
+        const pathToCsprojFile = dirname(absolutePathToCsProj);
+        const pathToJsonFile = join(pathToCsprojFile, 'prise.plugin.json');
+        if (fs.existsSync(pathToJsonFile)) {
+            this.outputAbstraction.error(`prise.plugin.json already exists at ${pathToJsonFile}`);
             return;
         }
 
         fs.writeFile(pathToJsonFile, JSON.stringify(this.priseJsonFileTemplate), err => {
             if (err) {
-                return vscode.window.showErrorMessage(
-                    "Failed to create prise.plugin.json file!"
+                return this.outputAbstraction.error(
+                    'Failed to create prise.plugin.json file!'
                 );
             }
-            vscode.window.showInformationMessage(`prise.plugin.json created at ${pathToJsonFile}`);
+            this.outputAbstraction.writeOutput(`prise.plugin.json created at ${pathToJsonFile}`);
         });
     }
 
-    public createPriseNugetFile(): void {
-        const pathToCsprojFile = dirname(this.absolutePathToCsProj);
-        const projectName = this.getProjectName();
-        const targetFramework = this.getTargetFramework();
+    public createPriseNuspecFile(absolutePathToCsProj: string): void {
+        const pathToCsprojFile = dirname(absolutePathToCsProj);
+        const projectName = ProjectHelper.getProjectName(absolutePathToCsProj);
+        const targetFramework = ProjectHelper.getTargetFramework(absolutePathToCsProj);
         const nuspecFile = `${projectName}.nuspec`;
         const pathToNuspecFile = join(pathToCsprojFile, nuspecFile);
-        if(fs.existsSync(pathToNuspecFile)){
-            vscode.window.showInformationMessage(`${nuspecFile} already exists at ${pathToNuspecFile}`);
+        if (fs.existsSync(pathToNuspecFile)) {
+            this.outputAbstraction.error(`${nuspecFile} already exists at ${pathToNuspecFile}`);
             return;
         }
 
         fs.writeFile(
-            pathToNuspecFile, 
-            this.getPriseNuspecFileTemplate(projectName, targetFramework), 
+            pathToNuspecFile,
+            this.getPriseNuspecFileTemplate(projectName, targetFramework),
             err => {
-            if (err) {
-                return vscode.window.showErrorMessage(
-                    `Failed to create ${nuspecFile} file!`
-                );
-            }
+                if (err) {
+                    return this.outputAbstraction.error(
+                        `Failed to create ${nuspecFile} file!`
+                    );
+                }
 
-            vscode.window.showInformationMessage(`${nuspecFile} created at ${pathToNuspecFile}`);
-        });
-    }
-
-    public dispose() {
+                this.outputAbstraction.writeOutput(`${nuspecFile} created at ${pathToNuspecFile}`);
+            });
     }
 }

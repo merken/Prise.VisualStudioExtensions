@@ -1,56 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = require("vscode");
+const prise_plugin_command_1 = require("./commands/prise-plugin.command");
+const output_abstraction_1 = require("./abstractions/output.abstraction");
+const nuspec_command_1 = require("./commands/nuspec.command");
+const publish_command_1 = require("./commands/publish.command");
+const pack_command_1 = require("./commands/pack.command");
 const filehelper_1 = require("./filehelper");
 const processhelper_1 = require("./processhelper");
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 function activate(context) {
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "prise-publishpluginextension" is now active!');
+    //Singleton output window instance
+    const outputAbstraction = new output_abstraction_1.OutputAbstraction(vscode.window.createOutputChannel('Prise'));
     let prisepluginfile = vscode.commands.registerCommand('prise-publishpluginextension.prisepluginfile', (args) => {
-        if (!args["scheme"] ||
-            args["scheme"] !== "file" ||
-            !args["fsPath"] ||
-            !args["fsPath"].endsWith(".csproj"))
-            return;
-        const csprojFile = args["fsPath"];
-        const fileHelper = new filehelper_1.FileHelper(csprojFile);
-        fileHelper.createPriseJsonFile();
+        new prise_plugin_command_1.PrisePluginCommand(new filehelper_1.FileHelper(outputAbstraction)).execute(args);
     });
     let prisenuspecfile = vscode.commands.registerCommand('prise-publishpluginextension.prisenuspecfile', (args) => {
-        if (!args["scheme"] ||
-            args["scheme"] !== "file" ||
-            !args["fsPath"] ||
-            !args["fsPath"].endsWith(".csproj"))
-            return;
-        const csprojFile = args["fsPath"];
-        const fileHelper = new filehelper_1.FileHelper(csprojFile);
-        fileHelper.createPriseNugetFile();
+        new nuspec_command_1.NuspecCommand(new filehelper_1.FileHelper(outputAbstraction)).execute(args);
     });
     let publishpriseplugin = vscode.commands.registerCommand('prise-publishpluginextension.publishpriseplugin', (args) => {
-        if (!args["scheme"] ||
-            args["scheme"] !== "file" ||
-            !args["fsPath"] ||
-            !args["fsPath"].endsWith(".csproj"))
-            return;
-        const csprojFile = args["fsPath"];
-        const processhelper = new processhelper_1.ProcessHelper(csprojFile);
-        processhelper.publishPlugin();
+        new publish_command_1.PublishCommand(new processhelper_1.ProcessHelper(outputAbstraction)).execute(args);
     });
     let publishprisenugetplugin = vscode.commands.registerCommand('prise-publishpluginextension.publishprisenugetplugin', (args) => {
-        if (!args["scheme"] ||
-            args["scheme"] !== "file" ||
-            !args["fsPath"] ||
-            !args["fsPath"].endsWith(".csproj"))
-            return;
-        const csprojFile = args["fsPath"];
-        const processhelper = new processhelper_1.ProcessHelper(csprojFile);
-        processhelper.packPlugin();
+        new pack_command_1.PackCommand(new processhelper_1.ProcessHelper(outputAbstraction)).execute(args);
     });
     context.subscriptions.push(prisepluginfile);
     context.subscriptions.push(prisenuspecfile);
@@ -58,7 +30,6 @@ function activate(context) {
     context.subscriptions.push(publishprisenugetplugin);
 }
 exports.activate = activate;
-// this method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
 //# sourceMappingURL=extension.js.map
