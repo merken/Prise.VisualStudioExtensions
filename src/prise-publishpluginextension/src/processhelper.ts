@@ -1,122 +1,186 @@
-'use strict';
-import * as fs from 'fs';
-import { dirname, resolve, join, isAbsolute } from 'path';
-import * as cp from 'child_process';
-import { ProjectHelper } from './projecthelper';
-import { OutputAbstraction } from './abstractions/output.abstraction';
+"use strict";
+import * as fs from "fs";
+import { dirname, resolve, join, isAbsolute } from "path";
+import * as cp from "child_process";
+import { ProjectHelper } from "./projecthelper";
+import { OutputAbstraction } from "./abstractions/output.abstraction";
 
 export class ProcessHelper {
-    constructor(private outputAbstraction: OutputAbstraction) { }
+  constructor(private outputAbstraction: OutputAbstraction) {}
 
-    private getPrisePluginConfig(absolutePathToCsProj: string): any {
-        const priseConfigFilePath = join(dirname(absolutePathToCsProj), 'prise.plugin.json');
-        if (!fs.existsSync(priseConfigFilePath)) {
-            this.outputAbstraction.error(`prise.plugin.json does not exists at ${priseConfigFilePath}`);
-            return;
-        }
-
-        const priseConfigContents = fs.readFileSync(priseConfigFilePath, 'utf8');
-        return JSON.parse(priseConfigContents);
+  private getPrisePluginConfig(absolutePathToCsProj: string): any {
+    const priseConfigFilePath = join(
+      dirname(absolutePathToCsProj),
+      "prise.plugin.json"
+    );
+    if (!fs.existsSync(priseConfigFilePath)) {
+      this.outputAbstraction.error(
+        `prise.plugin.json does not exists at ${priseConfigFilePath}`
+      );
+      return;
     }
 
-    public async publishPlugin(absolutePathToCsProj: string) {
-        const config = this.getPrisePluginConfig(absolutePathToCsProj);
-        if (!config) { return; }
+    const priseConfigContents = fs.readFileSync(priseConfigFilePath, "utf8");
+    return JSON.parse(priseConfigContents);
+  }
 
-        const workingDir = dirname(absolutePathToCsProj);
-        const projectName = ProjectHelper.getProjectName(absolutePathToCsProj);
-        const targetFramework = ProjectHelper.getTargetFramework(absolutePathToCsProj);
-        const configuration = config.configuration ?? 'Debug';
-        let publishPath = config.publishDir;
-
-        if (!isAbsolute(publishPath)) { publishPath = resolve(workingDir, publishPath); }
-
-        if (config.includeProjectNameInPublishDir) { publishPath = join(publishPath, projectName); }
-
-        if (!fs.existsSync(publishPath)) {
-            this.outputAbstraction.error(`Publish dir does not exists: ${publishPath}`);
-            return;
-        }
-
-        await this.dotnet('publish', projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`, publishPath);
+  public async publishPlugin(absolutePathToCsProj: string) {
+    const config = this.getPrisePluginConfig(absolutePathToCsProj);
+    if (!config) {
+      return;
     }
 
-    public async packPlugin(absolutePathToCsProj: string) {
-        const config = this.getPrisePluginConfig(absolutePathToCsProj);
-        if (!config) { return; }
+    const workingDir = dirname(absolutePathToCsProj);
+    const projectName = ProjectHelper.getProjectName(absolutePathToCsProj);
+    const targetFramework = ProjectHelper.getTargetFramework(
+      absolutePathToCsProj
+    );
+    const configuration = config.configuration ?? "Debug";
+    let publishPath = config.publishDir;
 
-        const workingDir = dirname(absolutePathToCsProj);
-        const projectName = ProjectHelper.getProjectName(absolutePathToCsProj);
-        const targetFramework = ProjectHelper.getTargetFramework(absolutePathToCsProj);
-        const configuration = config.configuration ?? 'Debug';
-        let nuspecFile = config.nuspecFile ?? `${projectName.split('.csproj')[0]}.nuspec`;
-        let publishPath = config.publishDir;
-
-        if (!isAbsolute(publishPath)) { publishPath = resolve(workingDir, publishPath); }
-
-        if (!isAbsolute(nuspecFile)) { nuspecFile = resolve(workingDir, nuspecFile); }
-
-        if (!fs.existsSync(publishPath)) {
-            this.outputAbstraction.error(`Publish dir does not exists: ${publishPath}`);
-            return;
-        }
-
-        if (!fs.existsSync(nuspecFile)) {
-            this.outputAbstraction.error(`NuSpec file does not exists: ${nuspecFile}`);
-            return;
-        }
-
-        const outputDir = await this.dotnet('publish', projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`);
-
-        this.changeLastWriteTime(resolve(workingDir, outputDir));
-
-        await this.dotnet('pack', projectName, targetFramework, workingDir, configuration, `${projectName}.csproj`, publishPath);
+    if (!isAbsolute(publishPath)) {
+      publishPath = resolve(workingDir, publishPath);
     }
 
-    private changeLastWriteTime(outputDir: string) {
-        var files = fs.readdirSync(outputDir);
-        const searchTime = new Date(2000, 1, 1);
-        for (var i = 0; i < files.length; i++) {
-            var filename = join(outputDir, files[i]);
-            var stat = fs.lstatSync(filename);
-            if (stat.isDirectory()) {
-                this.changeLastWriteTime(filename); //recurse
-            }
-            else if (filename.indexOf('.dll') >= 0) {
-                var stats = fs.statSync(filename);
-                var mtime = stats.mtime;
-                if (mtime < searchTime) {
-                    mtime.setFullYear(mtime.getFullYear() + 20);
-                    fs.utimesSync(filename, mtime, mtime);
-                }
-            };
-        };
+    if (config.includeProjectNameInPublishDir) {
+      publishPath = join(publishPath, projectName);
     }
 
-    private dotnet(command: string,
-        projectName: string,
-        targetFramework: string,
-        workingDir: string,
-        configuration: string,
-        projectFile: string,
-        outputPath?: string): Promise<string> {
-        return new Promise(resolve => {
-            let options = { cwd: workingDir };
-            let args = [command, '--configuration', configuration, projectFile];
-            if (outputPath) { args = [...args, '--output', outputPath]; }
+    if (!fs.existsSync(publishPath)) {
+      this.outputAbstraction.error(
+        `Publish dir does not exists: ${publishPath}`
+      );
+      return;
+    }
 
-            let childProcess = cp.spawn(`dotnet`, args, options);
+    await this.dotnet(
+      "publish",
+      projectName,
+      targetFramework,
+      workingDir,
+      configuration,
+      `${projectName}.csproj`,
+      publishPath
+    );
+  }
 
-            if (childProcess.pid) {
-                childProcess.stdout.on('data', (data: Buffer) => {
-                    this.outputAbstraction.writeOutput(data.toString());
-                });
-                childProcess.stdout.on('end', () => {
-                    const output = outputPath ?? join('bin', configuration, targetFramework, 'publish');
-                    this.outputAbstraction.writeOutput(`Published ${projectName} to ${output}`);
-                    resolve(output);
-                });
-            }
+  public async packPlugin(absolutePathToCsProj: string) {
+    const config = this.getPrisePluginConfig(absolutePathToCsProj);
+    if (!config) {
+      return;
+    }
+
+    const workingDir = dirname(absolutePathToCsProj);
+    const projectName = ProjectHelper.getProjectName(absolutePathToCsProj);
+    const targetFramework = ProjectHelper.getTargetFramework(
+      absolutePathToCsProj
+    );
+    const configuration = config.configuration ?? "Debug";
+    let nuspecFile =
+      config.nuspecFile ?? `${projectName.split(".csproj")[0]}.nuspec`;
+    let publishPath = config.publishDir;
+
+    if (!isAbsolute(publishPath)) {
+      publishPath = resolve(workingDir, publishPath);
+    }
+
+    if (!isAbsolute(nuspecFile)) {
+      nuspecFile = resolve(workingDir, nuspecFile);
+    }
+
+    if (!fs.existsSync(publishPath)) {
+      this.outputAbstraction.error(
+        `Publish dir does not exists: ${publishPath}`
+      );
+      return;
+    }
+
+    if (!fs.existsSync(nuspecFile)) {
+      this.outputAbstraction.error(
+        `NuSpec file does not exists: ${nuspecFile}`
+      );
+      return;
+    }
+
+    const outputDir = await this.dotnet(
+      "publish",
+      projectName,
+      targetFramework,
+      workingDir,
+      configuration,
+      `${projectName}.csproj`
+    );
+
+    this.changeLastWriteTime(resolve(workingDir, outputDir));
+
+    await this.dotnet(
+      "pack",
+      projectName,
+      targetFramework,
+      workingDir,
+      configuration,
+      `${projectName}.csproj`,
+      publishPath,
+      nuspecFile
+    );
+  }
+
+  private changeLastWriteTime(outputDir: string) {
+    var files = fs.readdirSync(outputDir);
+    const searchTime = new Date(2000, 1, 1);
+    for (var i = 0; i < files.length; i++) {
+      var filename = join(outputDir, files[i]);
+      var stat = fs.lstatSync(filename);
+      if (stat.isDirectory()) {
+        this.changeLastWriteTime(filename); //recurse
+      } else if (filename.indexOf(".dll") >= 0) {
+        var stats = fs.statSync(filename);
+        var mtime = stats.mtime;
+        if (mtime < searchTime) {
+          mtime.setFullYear(mtime.getFullYear() + 20);
+          fs.utimesSync(filename, mtime, mtime);
+        }
+      }
+    }
+  }
+
+  private dotnet(
+    command: string,
+    projectName: string,
+    targetFramework: string,
+    workingDir: string,
+    configuration: string,
+    projectFile: string,
+    outputPath?: string,
+    nuspecFile?: string
+  ): Promise<string> {
+    return new Promise((resolve) => {
+      let options = { cwd: workingDir };
+      let args = [command, "--configuration", configuration, projectFile];
+      if (outputPath) {
+        args = [...args, "--output", outputPath];
+      }
+
+      if(nuspecFile){
+        args = [...args, `/p:nuspecfile=${nuspecFile}`];
+      }
+
+      let childProcess = cp.spawn(`dotnet`, args, options);
+
+      if (childProcess.pid) {
+        childProcess.stdout.on("data", (data: Buffer) => {
+          this.outputAbstraction.writeOutput(data.toString());
         });
-    }
+        childProcess.stdout.on("end", () => {
+          const output =
+            outputPath ??
+            join("bin", configuration, targetFramework, "publish");
+          this.outputAbstraction.writeOutput(
+            `Published ${projectName} to ${output}`
+          );
+          resolve(output);
+        });
+      }
+    });
+  }
 }
