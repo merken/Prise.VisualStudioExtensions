@@ -1,67 +1,46 @@
-# prise-publishpluginextension README
+# Prise Plublish Plugin Extension
 
-This is the README for your extension "prise-publishpluginextension". After writing up a brief description, we recommend including the following sections.
+This extension lets you publish `Prise plugins` with ease from within VS Code!
+After installing, any `csproj` file will be able to publish a compatible Prise plugin.
 
-## Features
+## First, create the prise.plugin.json config file.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Right-click on a `csproj` file and select `Create Prise Plugin File`
 
-For example if there is an image subfolder under your extension project workspace:
+![Create Prise Plugin File](img/vscode_prise_json.gif)
 
-\!\[feature X\]\(images/feature-x.png\)
+This will create the following file:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+![prise.plugin.json](img/prise.plugin.json.png)
 
-## Requirements
+Properties of the plugin json file:
+- `publishDir`: a relative or absolute system path to publish the plugin to
+- `configuration`: Debug or Release
+- `nuspecFile`: optional, path to the `.nuspec` to use in case of packaging a plugin nuget package
+- `includeProjectNameInPublishDir`: default `false`. When `true`, adds the name of the `csproj` to the publishDir when publishing
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Publishing a Prise plugin to a dist folder
+Make sure the `../dist` folder exists (relative to your `csproj` path).
 
-## Extension Settings
+Right-click on a `csproj` file and select `Publish Prise Plugin`
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+This publish process will respect the configuration from the `prise.plugin.json` file
 
-For example:
+![Publish Prise Plugin](img/vscode_prise_publish.gif)
 
-This extension contributes the following settings:
+## Publishing a Prise nuget plugin to a dist folder
+Make sure the `../dist` folder exists (relative to your `csproj` path).
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+### Create the nuspec file
+Right-click on a `csproj` file and select `Crate Prise NuSpec File`
 
-## Known Issues
+![Publish Prise Plugin](img/vscode_prise_nuspec.gif)
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+You won't generally need to change anything to this file. Unless you change your `configuration` from `Debug` to `Release`.
 
-## Release Notes
+### Publishing the Prise Plugin as NuGet package
+Right-click on a `csproj` file and select `Publish Prise Plugin as NuGet package`
 
-Users appreciate release notes as you update your extension.
+![Publish Prise Plugin](img/vscode_prise_pack.gif)
 
-### 1.0.0
-
-test
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+This .nupkg package is a `self-contained package`, it is slightly larger than a normal package, because it will contain all the required assemblies from the Plugin.
