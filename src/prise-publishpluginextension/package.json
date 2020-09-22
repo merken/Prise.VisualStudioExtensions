@@ -3,7 +3,7 @@
 	"displayName": "Prise Publish Plugin Extension",
 	"description": "Publish Prise plugins with VS Code!",
 	"publisher": "MRKN",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"icon": "img/prise.png",
 	"repository": {
 		"url": "https://github.com/merken/Prise.VisualStudioExtensions/tree/master/src/prise-publishpluginextension"

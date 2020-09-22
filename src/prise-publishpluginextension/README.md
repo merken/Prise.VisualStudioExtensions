@@ -7,11 +7,11 @@ After installing, any `csproj` file will be able to publish a compatible Prise p
 
 Right-click on a `csproj` file and select `Create Prise Plugin File`
 
-![Create Prise Plugin File](img/vscode_prise_json.gif)
+![Create Prise Plugin File](https://github.com/merken/Prise.VisualStudioExtensions/raw/master/src/prise-publishpluginextension/img/vscode_prise_json.gif)
 
 This will create the following file:
 
-![prise.plugin.json](img/prise.plugin.json.png)
+![prise.plugin.json](https://github.com/merken/Prise.VisualStudioExtensions/raw/master/src/prise-publishpluginextension/img/prise.plugin.json.png)
 
 Properties of the plugin json file:
 - `publishDir`: a relative or absolute system path to publish the plugin to
@@ -26,21 +26,21 @@ Right-click on a `csproj` file and select `Publish Prise Plugin`
 
 This publish process will respect the configuration from the `prise.plugin.json` file
 
-![Publish Prise Plugin](img/vscode_prise_publish.gif)
+![Publish Prise Plugin](https://github.com/merken/Prise.VisualStudioExtensions/raw/master/src/prise-publishpluginextension/img/vscode_prise_publish.gif)
 
 ## Publishing a Prise nuget plugin to a dist folder
 Make sure the `../dist` folder exists (relative to your `csproj` path).
 
 ### Create the nuspec file
-Right-click on a `csproj` file and select `Crate Prise NuSpec File`
+Right-click on a `csproj` file and select `Create Prise NuSpec File`
 
-![Publish Prise Plugin](img/vscode_prise_nuspec.gif)
+![Publish Prise Plugin](https://github.com/merken/Prise.VisualStudioExtensions/raw/master/src/prise-publishpluginextension/img/vscode_prise_nuspec.gif)
 
 You won't generally need to change anything to this file. Unless you change your `configuration` from `Debug` to `Release`.
 
 ### Publishing the Prise Plugin as NuGet package
 Right-click on a `csproj` file and select `Publish Prise Plugin as NuGet package`
 
-![Publish Prise Plugin](img/vscode_prise_pack.gif)
+![Publish Prise Plugin](https://github.com/merken/Prise.VisualStudioExtensions/raw/master/src/prise-publishpluginextension/img/vscode_prise_pack.gif)
 
 This .nupkg package is a `self-contained package`, it is slightly larger than a normal package, because it will contain all the required assemblies from the Plugin.
