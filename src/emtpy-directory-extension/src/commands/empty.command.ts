@@ -16,7 +16,7 @@ export class EmptyCommand implements ICommand {
     const directory = args["fsPath"];
 
     this.dialogAbstraction
-      .confirm(`Delete this directory (${directory}) ?`)
+      .confirm(`Empty this directory (${directory}) ?`)
       .then((yes) => {
         if (yes) {
           if (this.fileSystemAbstraction.emptyDirectory(directory)) {
