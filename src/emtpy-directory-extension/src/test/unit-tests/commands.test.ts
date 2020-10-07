@@ -2,6 +2,7 @@ import assert = require("assert");
 import TypeMoq = require("typemoq");
 import { IDialogAbstraction } from "../../abstractions/dialog.abstraction";
 import { IFileSystemAbstraction } from "../../abstractions/filesystem.abstraction";
+import { IPromptAbstraction } from "../../abstractions/prompt.abstraction";
 import { EmptyCommand } from "../../commands/empty.command";
 
 describe("EmptyCommand", function () {
@@ -31,7 +32,12 @@ describe("EmptyCommand", function () {
 
     it("should empty the directory when dialog returns true", function () {
       const dialogAbstraction = TypeMoq.Mock.ofType<IDialogAbstraction>();
-      const fileSystemAbstraction: TypeMoq.IMock<IFileSystemAbstraction> = TypeMoq.Mock.ofType<IFileSystemAbstraction>();
+      const fileSystemAbstraction: TypeMoq.IMock<IFileSystemAbstraction> = TypeMoq.Mock.ofType<
+        IFileSystemAbstraction
+      >();
+      const promptAbstraction: TypeMoq.IMock<IPromptAbstraction> = TypeMoq.Mock.ofType<
+        IPromptAbstraction
+      >();
       const testPath = "testpath";
 
       dialogAbstraction
@@ -44,7 +50,8 @@ describe("EmptyCommand", function () {
 
       new EmptyCommand(
         dialogAbstraction.object,
-        fileSystemAbstraction.object
+        fileSystemAbstraction.object,
+        promptAbstraction.object
       ).execute({ fsPath: testPath });
 
       fileSystemAbstraction.verify(

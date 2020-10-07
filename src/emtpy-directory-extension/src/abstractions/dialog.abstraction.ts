@@ -16,10 +16,23 @@ export class DialogAbstraction implements IDialogAbstraction {
     const dialog = window.createQuickPick();
     dialog.buttons = [confirmButton, cancelButton];
     dialog.title = question;
-    dialog.placeholder = "Confirm delete via check button above.";
+    dialog.placeholder = "Type 'yes' to confirm or select the checkmark above.";
     dialog.show();
 
     return new Promise<boolean>((resolve, reject) => {
+      dialog.onDidChangeValue((s) => {
+        if (s.toLowerCase() === "yes") {
+          resolve(true);
+          dialog.hide();
+        }
+      });
+
+      dialog.onDidChangeSelection(([{ label }]) => {
+        debugger;
+        window.showInformationMessage(label);
+        dialog.hide();
+      });
+
       dialog.onDidTriggerButton((btn) => {
         if (btn === confirmButton) {
           resolve(true);
