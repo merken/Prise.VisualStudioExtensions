@@ -36,19 +36,19 @@ export class ProcessHelper {
       absolutePathToCsProj
     );
     const configuration = config.configuration ?? "Debug";
-    let publishPath = config.publishDir;
+    let publishDir = config.publishDir;
 
-    if (!isAbsolute(publishPath)) {
-      publishPath = resolve(workingDir, publishPath);
+    if (!isAbsolute(publishDir)) {
+      publishDir = resolve(workingDir, publishDir);
     }
 
     if (config.includeProjectNameInPublishDir) {
-      publishPath = join(publishPath, projectName);
+      publishDir = join(publishDir, projectName);
     }
 
-    if (!fs.existsSync(publishPath)) {
+    if (!fs.existsSync(publishDir)) {
       this.outputAbstraction.error(
-        `Publish dir does not exists: ${publishPath}`
+        `Publish dir does not exists: ${publishDir}`
       );
       return;
     }
@@ -60,8 +60,10 @@ export class ProcessHelper {
       workingDir,
       configuration,
       `${projectName}.csproj`,
-      publishPath
+      publishDir
     );
+
+    this.outputAbstraction.message(`Published ${projectName} to ${publishDir}`);
   }
 
   public async packPlugin(absolutePathToCsProj: string) {
@@ -102,7 +104,7 @@ export class ProcessHelper {
       return;
     }
 
-    const outputDir = await this.dotnet(
+    const publishDir = await this.dotnet(
       "publish",
       projectName,
       targetFramework,
@@ -111,7 +113,7 @@ export class ProcessHelper {
       `${projectName}.csproj`
     );
 
-    this.changeLastWriteTime(resolve(workingDir, outputDir));
+    this.changeLastWriteTime(resolve(workingDir, publishDir));
 
     await this.dotnet(
       "pack",
@@ -123,6 +125,8 @@ export class ProcessHelper {
       publishPath,
       nuspecFile
     );
+
+    this.outputAbstraction.message(`Packaged ${projectName} to ${publishPath}`);
   }
 
   private changeLastWriteTime(outputDir: string) {
@@ -175,9 +179,6 @@ export class ProcessHelper {
           const output =
             outputPath ??
             join("bin", configuration, targetFramework, "publish");
-          this.outputAbstraction.writeOutput(
-            `Published ${projectName} to ${output}`
-          );
           resolve(output);
         });
       }
