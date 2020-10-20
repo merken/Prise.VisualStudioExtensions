@@ -10,7 +10,7 @@ export interface IContextAbstraction {
 }
 
 export class ContextAbstraction implements IContextAbstraction {
-  constructor(private context: vscode.ExtensionContext) {}
+  constructor(private context: vscode.ExtensionContext) { }
 
   startListening(): void {
     const setPriseContext = () => {
@@ -33,10 +33,16 @@ export class ContextAbstraction implements IContextAbstraction {
       const pathToCsProj =
         vscode.window?.activeTextEditor?.document.uri.path ?? "";
 
-      const pathToProjectDir = pathToCsProj.substring(
+      let pathToProjectDir = pathToCsProj.substring(
         0,
         pathToCsProj.lastIndexOf("/")
       );
+
+      if (pathToCsProj.indexOf('\\') > 0) // Windows
+        pathToProjectDir = pathToCsProj.substring(
+          0,
+          pathToCsProj.lastIndexOf("\\")
+        );
 
       const hasPrisePluginFile = fs.existsSync(
         `${pathToProjectDir}/prise.plugin.json`
