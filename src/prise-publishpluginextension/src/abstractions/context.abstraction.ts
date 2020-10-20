@@ -31,18 +31,13 @@ export class ContextAbstraction implements IContextAbstraction {
       this.setContext("prise:isPriseProject", true);
 
       const pathToCsProj =
-        vscode.window?.activeTextEditor?.document.uri.path ?? "";
-
-      let pathToProjectDir = pathToCsProj.substring(
+        vscode.window?.activeTextEditor?.document.uri.fsPath ?? "";
+      const isWindows = pathToCsProj.indexOf('\\') > 0;
+      const separatorChar = isWindows ? '\\' : '/';
+      const pathToProjectDir = pathToCsProj.substring(
         0,
-        pathToCsProj.lastIndexOf("/")
+        pathToCsProj.lastIndexOf(separatorChar)
       );
-
-      if (pathToCsProj.indexOf('\\') > 0) // Windows
-        pathToProjectDir = pathToCsProj.substring(
-          0,
-          pathToCsProj.lastIndexOf("\\")
-        );
 
       const hasPrisePluginFile = fs.existsSync(
         `${pathToProjectDir}/prise.plugin.json`
@@ -50,7 +45,7 @@ export class ContextAbstraction implements IContextAbstraction {
       this.setContext("prise:hasPrisePluginFile", hasPrisePluginFile);
 
       const projectName = pathToCsProj
-        .substring(pathToCsProj.lastIndexOf("/") + 1)
+        .substring(pathToCsProj.lastIndexOf(separatorChar) + 1)
         .replace(".csproj", "");
       const hasNuspecFile = fs.existsSync(
         `${pathToProjectDir}/${projectName}.nuspec`
