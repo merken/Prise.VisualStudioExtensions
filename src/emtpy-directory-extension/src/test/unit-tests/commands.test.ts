@@ -1,9 +1,10 @@
 import assert = require("assert");
 import TypeMoq = require("typemoq");
-import { IDialogAbstraction } from "../../abstractions/dialog.abstraction";
-import { IFileSystemAbstraction } from "../../abstractions/filesystem.abstraction";
+import { DialogAbstraction, IDialogAbstraction } from "../../abstractions/dialog.abstraction";
+import { FileSystemAbstraction, IFileSystemAbstraction } from "../../abstractions/filesystem.abstraction";
 import { IPromptAbstraction } from "../../abstractions/prompt.abstraction";
-import { EmptyCommand } from "../../commands/empty.command";
+import { EmptyDirectoryCommand } from "../../commands/emptydirectory.command";
+import { Substitute, Arg } from '@fluffy-spoon/substitute';
 
 describe("EmptyCommand", function () {
   describe("execute", function () {
@@ -31,33 +32,32 @@ describe("EmptyCommand", function () {
     // });
 
     it("should empty the directory when dialog returns true", function () {
-      const dialogAbstraction = TypeMoq.Mock.ofType<IDialogAbstraction>();
-      const fileSystemAbstraction: TypeMoq.IMock<IFileSystemAbstraction> = TypeMoq.Mock.ofType<
-        IFileSystemAbstraction
-      >();
-      const promptAbstraction: TypeMoq.IMock<IPromptAbstraction> = TypeMoq.Mock.ofType<
-        IPromptAbstraction
-      >();
-      const testPath = "testpath";
+      // const dialogAbstraction = TypeMoq.Mock.ofType<IDialogAbstraction>();
 
-      dialogAbstraction
-        .setup((f) => f.confirm(TypeMoq.It.isAnyString()))
-        .returns(async () => true);
+      const dialogAbstraction = Substitute.for<IDialogAbstraction>();
+      const fileSystemAbstraction = Substitute.for<IFileSystemAbstraction>();
+      const promptAbstraction = Substitute.for<IPromptAbstraction>();
+      const testPath: string = "mypath";
 
-      fileSystemAbstraction
-        .setup((f) => f.emptyDirectory(testPath))
-        .returns(() => true);
+      dialogAbstraction.confirm(Arg.any()).resolves(true);
+      fileSystemAbstraction.emptyDirectory(testPath).returns(true);
+      promptAbstraction.showMessage(Arg.any());
 
-      new EmptyCommand(
-        dialogAbstraction.object,
-        fileSystemAbstraction.object,
-        promptAbstraction.object
+      new EmptyDirectoryCommand(
+        dialogAbstraction,
+        fileSystemAbstraction,
+        promptAbstraction
       ).execute({ fsPath: testPath });
 
-      fileSystemAbstraction.verify(
-        (f) => f.emptyDirectory(TypeMoq.It.isValue(testPath)),
-        TypeMoq.Times.once()
-      );
+      // promptAbstraction.object.showMessage("");
+
+      // fileSystemAbstraction.object.emptyDirectory("testpath");
+
+      dialogAbstraction.received(1).confirm(Arg.any());
+
+      fileSystemAbstraction.received(1).emptyDirectory(testPath);
+
+      promptAbstraction.received(1).showMessage(Arg.any());
     });
 
     // it("should empty the directory when dialog returns false", function () {
