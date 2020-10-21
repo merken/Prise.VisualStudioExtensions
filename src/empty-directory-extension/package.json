@@ -3,7 +3,7 @@
 	"displayName": "Empty Directory Extension",
 	"description": "Empty a directory from VS Code!",
 	"publisher": "MRKN",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"icon": "img/empty.png",
 	"repository": {
 		"url": "https://github.com/merken/Prise.VisualStudioExtensions/tree/master/src/emtpy-directory-extension"
