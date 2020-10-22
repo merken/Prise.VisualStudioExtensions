@@ -28,7 +28,7 @@ describe("EmptyFilesCommand", function () {
       promptAbstraction.received(0).showMessage(Arg.any());
     });
 
-    it("should empty the directory when dialog returns true", async function () {
+    it("should empty the files when dialog returns true", async function () {
       const dialogAbstraction = Substitute.for<IDialogAbstraction>();
       const fileSystemAbstraction = Substitute.for<IFileSystemAbstraction>();
       const promptAbstraction = Substitute.for<IPromptAbstraction>();
@@ -50,7 +50,7 @@ describe("EmptyFilesCommand", function () {
       promptAbstraction.received(1).showMessage(Arg.any());
     });
 
-    it("should empty the directory when dialog returns false", async function () {
+    it("should do nothing when dialog returns false", async function () {
       const dialogAbstraction = Substitute.for<IDialogAbstraction>();
       const fileSystemAbstraction = Substitute.for<IFileSystemAbstraction>();
       const promptAbstraction = Substitute.for<IPromptAbstraction>();
