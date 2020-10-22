@@ -6,3 +6,4 @@ out
 node_modules
 .vscode-test
 .DS_Store
+!src/empty-directory-extension/.vscode
