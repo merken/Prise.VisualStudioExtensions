@@ -10,22 +10,22 @@ export class EmptyDirectoryCommand implements ICommand {
     private promptAbstraction: IPromptAbstraction
   ) { }
 
-  execute(args: any): void {
+  async execute(args: any): Promise<void> {
     if (!args || !args["fsPath"]) {
-      return;
+      return Promise.resolve();
     }
 
-    const directory: string = args["fsPath"];
+    const directory = args["fsPath"];
     const messageDir = `${directory.substring(directory.lastIndexOf("/"))}`;
     const message = `Empty this directory (${messageDir}) ?`;
-    this.dialogAbstraction.confirm(message).then((yes) => {
-      if (yes) {
-        if (this.fileSystemAbstraction.emptyDirectory(directory)) {
-          this.promptAbstraction.showMessage(
-            `Emptied this directory ${messageDir}`
-          );
-        }
+    const confirmed = await this.dialogAbstraction.confirm(message);
+
+    if (confirmed) {
+      if (this.fileSystemAbstraction.emptyDirectory(directory)) {
+        this.promptAbstraction.showMessage(
+          `Emptied this directory ${messageDir}`
+        );
       }
-    });
+    }
   }
 }

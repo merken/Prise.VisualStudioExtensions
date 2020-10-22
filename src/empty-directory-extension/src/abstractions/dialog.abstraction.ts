@@ -27,12 +27,6 @@ export class DialogAbstraction implements IDialogAbstraction {
         }
       });
 
-      dialog.onDidChangeSelection(([{ label }]) => {
-        debugger;
-        window.showInformationMessage(label);
-        dialog.hide();
-      });
-
       dialog.onDidTriggerButton((btn) => {
         if (btn === confirmButton) {
           resolve(true);

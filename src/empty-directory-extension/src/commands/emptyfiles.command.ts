@@ -10,25 +10,22 @@ export class EmptyFilesCommand implements ICommand {
         private promptAbstraction: IPromptAbstraction
     ) { }
 
-    execute(args: any): void {
+    async execute(args: any): Promise<void> {
         if (!args || !args["fsPath"]) {
-            return;
+            return Promise.resolve();
         }
 
         const directory = args["fsPath"];
         const messageDir = `${directory.substring(directory.lastIndexOf("/"))}`;
         const message = `Remove all files this directory (${messageDir}) ?`;
-        Promise.resolve(true).then(() => {
-            this.dialogAbstraction.confirm(message).then((yes) => {
-                if (yes) {
-                    if (this.fileSystemAbstraction.emptyFiles(directory)) {
-                        this.promptAbstraction.showMessage(
-                            `Files deleted from ${messageDir}`
-                        );
-                    }
-                }
-            });
-        });
+        const confirmed = await this.dialogAbstraction.confirm(message);
 
+        if (confirmed) {
+            if (this.fileSystemAbstraction.emptyFiles(directory)) {
+                this.promptAbstraction.showMessage(
+                    `Files deleted from ${messageDir}`
+                );
+            }
+        }
     }
 }
