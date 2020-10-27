@@ -54,6 +54,24 @@ export class ProcessHelper {
     }
 
     await this.dotnet(
+      "clean",
+      projectName,
+      targetFramework,
+      workingDir,
+      configuration,
+      `${projectName}.csproj`
+    );
+
+    await this.dotnet(
+      "build",
+      projectName,
+      targetFramework,
+      workingDir,
+      configuration,
+      `${projectName}.csproj`
+    );
+
+    await this.dotnet(
       "publish",
       projectName,
       targetFramework,
@@ -103,6 +121,24 @@ export class ProcessHelper {
       );
       return;
     }
+
+    await this.dotnet(
+      "clean",
+      projectName,
+      targetFramework,
+      workingDir,
+      configuration,
+      `${projectName}.csproj`
+    );
+
+    await this.dotnet(
+      "build",
+      projectName,
+      targetFramework,
+      workingDir,
+      configuration,
+      `${projectName}.csproj`
+    );
 
     const publishDir = await this.dotnet(
       "publish",
